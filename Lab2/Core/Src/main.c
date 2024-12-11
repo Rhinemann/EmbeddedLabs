@@ -25,20 +25,13 @@
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
-#define LED_SWITCH_DELAY (1000)
-
-typedef enum {
-	FADE,
-	PAIRS,
-	CYCLE,
-	OUT_OF_RANGE,
-} Light_Mode;
-
+/* USER CODE BEGIN PTD */
 typedef void (*func)();
+/* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+#define LED_SWITCH_DELAY (1000)
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -47,7 +40,10 @@ typedef void (*func)();
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
-Light_Mode light_mode = FADE;
+
+/* USER CODE BEGIN PV */
+Light_Mode light_mode = ALL_ON;
+/* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
@@ -58,6 +54,15 @@ static void MX_GPIO_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+void all_on_mode()
+{
+	HAL_GPIO_WritePin(GREEN_LED_GPIO_Port, GREEN_LED_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(ORANGE_LED_GPIO_Port, ORANGE_LED_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(RED_LED_GPIO_Port, RED_LED_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(BLUE_LED_GPIO_Port, BLUE_LED_Pin, GPIO_PIN_SET);
+	HAL_Delay(LED_SWITCH_DELAY);
+}
 
 void fade_mode()
 {
@@ -90,6 +95,8 @@ void pairs_mode()
 void cycle_mode()
 {
 	HAL_GPIO_WritePin(GREEN_LED_GPIO_Port, GREEN_LED_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(ORANGE_LED_GPIO_Port, ORANGE_LED_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(RED_LED_GPIO_Port, RED_LED_Pin, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(BLUE_LED_GPIO_Port, BLUE_LED_Pin, GPIO_PIN_RESET);
 	HAL_Delay(LED_SWITCH_DELAY);
 	HAL_GPIO_WritePin(GREEN_LED_GPIO_Port, GREEN_LED_Pin, GPIO_PIN_RESET);
@@ -102,6 +109,8 @@ void cycle_mode()
 	HAL_GPIO_WritePin(BLUE_LED_GPIO_Port, BLUE_LED_Pin, GPIO_PIN_SET);
 	HAL_Delay(LED_SWITCH_DELAY);
 }
+
+func mode_func[] = {all_on_mode, fade_mode, pairs_mode, cycle_mode};
 
 /* USER CODE END 0 */
 
@@ -142,24 +151,9 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  GPIO_PinState btn_state;
-	  btn_state = HAL_GPIO_ReadPin(MODE_SWITCH_GPIO_Port, MODE_SWITCH_Pin);
-
-	  func mode_func[] = {fade_mode, pairs_mode, cycle_mode};
-
-	  if (btn_state == GPIO_PIN_RESET) {
-		  light_mode++;
-		  if (light_mode >= OUT_OF_RANGE) {
-			light_mode = FADE;
-		}
-	  }
-
-	  HAL_GPIO_WritePin(GREEN_LED_GPIO_Port, GREEN_LED_Pin, GPIO_PIN_RESET);
-	  HAL_GPIO_WritePin(ORANGE_LED_GPIO_Port, ORANGE_LED_Pin, GPIO_PIN_RESET);
-	  HAL_GPIO_WritePin(RED_LED_GPIO_Port, RED_LED_Pin, GPIO_PIN_RESET);
-	  HAL_GPIO_WritePin(BLUE_LED_GPIO_Port, BLUE_LED_Pin, GPIO_PIN_RESET);
-
+    /* USER CODE END WHILE */
 	  mode_func[light_mode]();
+    /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
 }
@@ -225,7 +219,7 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pin : MODE_SWITCH_Pin */
   GPIO_InitStruct.Pin = MODE_SWITCH_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(MODE_SWITCH_GPIO_Port, &GPIO_InitStruct);
 
@@ -235,6 +229,10 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI0_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI0_IRQn);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */

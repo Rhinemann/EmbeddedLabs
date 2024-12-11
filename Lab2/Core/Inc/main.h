@@ -57,8 +57,9 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define MODE_SWITCH_Pin GPIO_PIN_1
+#define MODE_SWITCH_Pin GPIO_PIN_0
 #define MODE_SWITCH_GPIO_Port GPIOA
+#define MODE_SWITCH_EXTI_IRQn EXTI0_IRQn
 #define GREEN_LED_Pin GPIO_PIN_12
 #define GREEN_LED_GPIO_Port GPIOD
 #define ORANGE_LED_Pin GPIO_PIN_13
@@ -69,7 +70,13 @@ void Error_Handler(void);
 #define BLUE_LED_GPIO_Port GPIOD
 
 /* USER CODE BEGIN Private defines */
-
+typedef enum {
+	ALL_ON,
+	FADE,
+	PAIRS,
+	CYCLE,
+	OUT_OF_RANGE,
+} Light_Mode;
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus
